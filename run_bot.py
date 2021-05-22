@@ -152,7 +152,7 @@ def sort_cases(cases):
 	return sorted(cases, key=lambda case: (rank[case['status']], case['file_time']))
 
 
-def get_all_cases():
+def get_all_cases(clerks):
 	cat = pywikibot.Category(site, 'Category:Open SPI cases')
 	gen = pagegenerators.CategorizedPageGenerator(cat)
 	cases = []
@@ -172,7 +172,7 @@ def get_all_cases():
 
 def main():
 	clerks = get_clerk_list()
-	cases = get_all_cases()
+	cases = get_all_cases(clerks)
 	page = pywikibot.Page(site, TABLE_LOCATION)
 	page.text = generate_case_table(cases)
 	page.save(summary='Updating SPI case list ({0} open cases)'.format(len(cases)), minor=False)
