@@ -22,12 +22,6 @@ def get_clerk_list():
 	return clerks
 
 
-def get_cases_in_category(category):
-	cases = []
-	cat = pywikibot.Category(site, category)
-	gen = pagegenerators.CategorizedPageGenerator(cat)
-
-
 def get_status_from_categories(categories):
 	"""
 	For concision, each case will only appear one time in the list. The following
