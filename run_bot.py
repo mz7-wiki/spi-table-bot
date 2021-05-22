@@ -3,7 +3,7 @@ from pywikibot import pagegenerators, textlib
 import re
 
 site = pywikibot.Site('en', 'wikipedia')
-TABLE_LOCATION = 'User:Mz7/SPI case list'  # location where this program should post the SPI case list
+TABLE_LOCATION = 'User:Mz7/SPI case list (new order)'  # location where this program should post the SPI case list
 
 
 def get_clerk_list():
@@ -23,38 +23,47 @@ def get_clerk_list():
 
 
 def get_status_from_categories(categories):
-	"""
-	For concision, each case will only appear one time in the list. The following
-	order determines the case's status if there are multiple reports on the same
-	case with different statuses.
-
-	Hierarchy:
-		inprogress > endorsed > relist > CUrequest > admin > clerk > checked > open > 
-		cudeclined > declined > moreinfo > cuhold > hold > close
-	"""
 	print("Getting case status")
 	cat2status = {
-		'SPI cases currently being checked': ('inprogress', 0),
-		'SPI cases awaiting a CheckUser': ('endorsed', 1),
-		'SPI cases relisted for a checkuser': ('relist', 2),
-		'SPI cases requesting a checkuser': ('CUrequest', 3),
-		'SPI cases needing an Administrator': ('admin', 4),
-		'SPI cases needing a Clerk': ('clerk', 5),
-		'SPI cases CU complete': ('checked', 6),
-		'SPI cases awaiting review': ('open', 7),
-		'SPI cases declined for checkuser by CU': ('cudeclined', 8),
-		'SPI cases declined for checkuser by clerk': ('declined', 9),
-		'SPI cases requesting more information': ('moreinfo', 10),
-		'SPI cases on hold by checkuser': ('cuhold', 11),
-		'SPI cases on hold by clerk': ('hold', 12),
-		'SPI cases awaiting archive': ('close', 13)
+		'SPI cases currently being checked': 'inprogress',
+		'SPI cases awaiting a CheckUser': 'endorsed',
+		'SPI cases relisted for a checkuser': 'relist',
+		'SPI cases requesting a checkuser': 'CUrequest',
+		'SPI cases needing an Administrator': 'admin',
+		'SPI cases needing a Clerk': 'clerk',
+		'SPI cases CU complete': 'checked',
+		'SPI cases awaiting review': 'open',
+		'SPI cases declined for checkuser by CU': 'cudeclined',
+		'SPI cases declined for checkuser by clerk': 'declined',
+		'SPI cases requesting more information': 'moreinfo',
+		'SPI cases on hold by checkuser': 'cuhold',
+		'SPI cases on hold by clerk': 'hold',
+		'SPI cases awaiting archive': 'close',
 	}
 	statuses = []
 	for cat in categories:
 		title = cat.title(with_ns=False)
-		if title in cat2status.keys():
+		if title in cat2status:
 			statuses.append(cat2status[title])
-	return min(statuses, key=lambda x: x[1])[0]
+
+	priority = ['clerk', 'admin', 'checked', 'close']
+	result = []
+	curequest = {'inprogress': 0, 'endorsed': 1, 'relist': 2, 'CUrequest': 3}
+	curequest_only = []
+	misc = {'open': 0, 'cudeclined': 1, 'declined': 2, 'moreinfo': 3, 'cuhold': 4, 'hold': 5}
+	misc_only = []
+	for status in statuses:
+		if status in priority:
+			result.append(status)
+		elif status in curequest:
+			curequest_only.append(status)
+		elif status in misc:
+			misc_only.append(status)
+	if curequest_only:
+		result.append(min(curequest_only, key=lambda x: curequest[x]))
+	if misc_only:
+		result.append(min(misc_only, key=lambda x: misc[x]))
+	return result
 
 
 def get_case_details(case_page, clerks=[]):
@@ -143,13 +152,27 @@ def sort_cases(cases):
 	return sorted(cases, key=lambda case: (rank[case['status']], case['file_time']))
 
 
-def main():
-	clerks = get_clerk_list()
-	
+def get_all_cases():
 	cat = pywikibot.Category(site, 'Category:Open SPI cases')
 	gen = pagegenerators.CategorizedPageGenerator(cat)
-	cases = sort_cases([get_case_details(page, clerks) for page in gen])
-	
+	cases = []
+	for page in gen:
+		case = get_case_details(page, clerks)
+		if len(case['status']) > 1:
+			statuses = case['status']
+			for status in statuses:
+				case_copy = case.copy()
+				case_copy['status'] = status
+				cases.append(case_copy)
+		else:
+			case['status'] = case['status'][0]
+			cases.append(case)
+	return sort_cases(cases)
+
+
+def main():
+	clerks = get_clerk_list()
+	cases = get_all_cases()
 	page = pywikibot.Page(site, TABLE_LOCATION)
 	page.text = generate_case_table(cases)
 	page.save(summary='Updating SPI case list ({0} open cases)'.format(len(cases)), minor=False)
