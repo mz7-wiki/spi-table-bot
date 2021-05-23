@@ -3,7 +3,7 @@ from pywikibot import pagegenerators, textlib
 import re
 
 site = pywikibot.Site('en', 'wikipedia')
-TABLE_LOCATION = 'User:Mz7/SPI case list (new order)'  # location where this program should post the SPI case list
+TABLE_LOCATION = 'User:Mz7/SPI case list'  # location where this program should post the SPI case list
 
 
 def get_clerk_list():
@@ -165,8 +165,13 @@ def get_all_cases(clerks):
 				case_copy['status'] = status
 				cases.append(case_copy)
 		else:
-			case['status'] = case['status'][0]
-			cases.append(case)
+			try:
+				case['status'] = case['status'][0]
+				cases.append(case)
+			except IndexError as e:
+				print(e)
+				print("The following case may have been archived while the case details were being grabbed:")
+				print(case)
 	return sort_cases(cases)
 
 
@@ -175,7 +180,7 @@ def main():
 	cases = get_all_cases(clerks)
 	page = pywikibot.Page(site, TABLE_LOCATION)
 	page.text = generate_case_table(cases)
-	page.save(summary='Updating SPI case list ({0} open cases)'.format(len(cases)), minor=False)
+	page.save(summary='Updating SPI case list ({0} active reports)'.format(len(cases)), minor=False)
 
 
 main()
