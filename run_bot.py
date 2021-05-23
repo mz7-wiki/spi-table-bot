@@ -61,7 +61,7 @@ def get_status_from_categories(categories):
 			misc_only.append(status)
 	if curequest_only:
 		result.append(min(curequest_only, key=lambda x: curequest[x]))
-	if misc_only:
+	if misc_only and len(result) == 0:
 		result.append(min(misc_only, key=lambda x: misc[x]))
 	return result
 
@@ -143,12 +143,12 @@ def generate_case_table(cases):
 def sort_cases(cases):
 	"""
 	Order of the SPI case table:
-	inprogress, endorsed, relisted, CUrequest, checked, open, admin, clerk, moreinfo,
-	declined, cudeclined, hold, cuhold, close
+	inprogress > endorsed > relist > CUrequest > admin > clerk > checked > open > cudeclined >
+	declined > moreinfo > cuhold > hold > close
 	"""
-	rank = {'inprogress': 0, 'endorsed': 1, 'relisted': 2, 'CUrequest': 3, 'checked': 4,
-	'open': 5, 'admin': 6, 'clerk': 7, 'moreinfo': 8, 'declined': 9, 'cudeclined': 10, 'hold': 11,
-	'cuhold': 12, 'close': 13}
+	rank = {'inprogress': 0, 'endorsed': 1, 'relisted': 2, 'CUrequest': 3, 'admin': 4,
+	'clerk': 5, 'checked': 6, 'open': 7, 'cudeclined': 8, 'declined': 9, 'moreinfo': 10, 'cuhold': 11,
+	'hold': 12, 'close': 13}
 	return sorted(cases, key=lambda case: (rank[case['status']], case['file_time']))
 
 
