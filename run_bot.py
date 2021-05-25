@@ -189,7 +189,7 @@ def main():
 	cases = get_all_cases(clerks)
 	page = pywikibot.Page(site, TABLE_LOCATION)
 	page.text = generate_case_table(cases)
-	page.save(summary='Updating SPI case list ({0} active reports)'.format(len(cases)), minor=False, bot=True)
+	page.save(summary='Updating SPI case list ({0} active reports)'.format(len(cases)), minor=False, botflag=True)
 
 
 main()
