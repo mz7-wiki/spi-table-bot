@@ -24,37 +24,55 @@ def get_clerk_list():
 
 def get_status_from_categories(categories):
 	"""
-	For concision, each case will only appear one time in the list. The following
-	order determines the case's status if there are multiple reports on the same
-	case with different statuses.
-
-	Hierarchy:
-		inprogress > endorsed > relist > CUrequest > admin > clerk > checked > open > 
-		cudeclined > declined > moreinfo > cuhold > hold > close
+	For concision, cases will usually appear in the SPI case table only once, except that
+	the following statuses will always appear: clerk, admin, checked, close, and one of 
+	(inprogress, endorsed, relist, CUrequest).
+	
+	For example, if an SPI case has five active reports, one with 'clerk', one with 'close'
+	one with 'endorsed', one with 'CUrequest', and one with 'open', it will appear three times
+	in the table as 'clerk', 'close', and 'endorsed'.
 	"""
 	print("Getting case status")
 	cat2status = {
-		'SPI cases currently being checked': ('inprogress', 0),
-		'SPI cases awaiting a CheckUser': ('endorsed', 1),
-		'SPI cases relisted for a checkuser': ('relist', 2),
-		'SPI cases requesting a checkuser': ('CUrequest', 3),
-		'SPI cases needing an Administrator': ('admin', 4),
-		'SPI cases needing a Clerk': ('clerk', 5),
-		'SPI cases CU complete': ('checked', 6),
-		'SPI cases awaiting review': ('open', 7),
-		'SPI cases declined for checkuser by CU': ('cudeclined', 8),
-		'SPI cases declined for checkuser by clerk': ('declined', 9),
-		'SPI cases requesting more information': ('moreinfo', 10),
-		'SPI cases on hold by checkuser': ('cuhold', 11),
-		'SPI cases on hold by clerk': ('hold', 12),
-		'SPI cases awaiting archive': ('close', 13)
+		'SPI cases currently being checked': 'inprogress',
+		'SPI cases awaiting a CheckUser': 'endorsed',
+		'SPI cases relisted for a checkuser': 'relist',
+		'SPI cases requesting a checkuser': 'CUrequest',
+		'SPI cases needing an Administrator': 'admin',
+		'SPI cases needing a Clerk': 'clerk',
+		'SPI cases CU complete': 'checked',
+		'SPI cases awaiting review': 'open',
+		'SPI cases declined for checkuser by CU': 'cudeclined',
+		'SPI cases declined for checkuser by clerk': 'declined',
+		'SPI cases requesting more information': 'moreinfo',
+		'SPI cases on hold by checkuser': 'cuhold',
+		'SPI cases on hold by clerk': 'hold',
+		'SPI cases awaiting archive': 'close',
 	}
 	statuses = []
 	for cat in categories:
 		title = cat.title(with_ns=False)
-		if title in cat2status.keys():
+		if title in cat2status:
 			statuses.append(cat2status[title])
-	return min(statuses, key=lambda x: x[1])[0]
+
+	priority = ['clerk', 'admin', 'checked', 'close']
+	result = []
+	curequest = {'inprogress': 0, 'endorsed': 1, 'relist': 2, 'CUrequest': 3}
+	curequest_only = []
+	misc = {'open': 0, 'cudeclined': 1, 'declined': 2, 'moreinfo': 3, 'cuhold': 4, 'hold': 5}
+	misc_only = []
+	for status in statuses:
+		if status in priority:
+			result.append(status)
+		elif status in curequest:
+			curequest_only.append(status)
+		elif status in misc:
+			misc_only.append(status)
+	if curequest_only:
+		result.append(min(curequest_only, key=lambda x: curequest[x]))
+	if misc_only and len(result) == 0:
+		result.append(min(misc_only, key=lambda x: misc[x]))
+	return result
 
 
 def get_case_details(case_page, clerks=[]):
@@ -134,25 +152,44 @@ def generate_case_table(cases):
 def sort_cases(cases):
 	"""
 	Order of the SPI case table:
-	inprogress, endorsed, relisted, CUrequest, checked, open, admin, clerk, moreinfo,
-	declined, cudeclined, hold, cuhold, close
+	inprogress > endorsed > relist > CUrequest > admin > clerk > checked > open > cudeclined >
+	declined > moreinfo > cuhold > hold > close
 	"""
-	rank = {'inprogress': 0, 'endorsed': 1, 'relisted': 2, 'CUrequest': 3, 'checked': 4,
-	'open': 5, 'admin': 6, 'clerk': 7, 'moreinfo': 8, 'declined': 9, 'cudeclined': 10, 'hold': 11,
-	'cuhold': 12, 'close': 13}
+	rank = {'inprogress': 0, 'endorsed': 1, 'relisted': 2, 'CUrequest': 3, 'admin': 4,
+	'clerk': 5, 'checked': 6, 'open': 7, 'cudeclined': 8, 'declined': 9, 'moreinfo': 10, 'cuhold': 11,
+	'hold': 12, 'close': 13}
 	return sorted(cases, key=lambda case: (rank[case['status']], case['file_time']))
+
+
+def get_all_cases(clerks):
+	cat = pywikibot.Category(site, 'Category:Open SPI cases')
+	gen = pagegenerators.CategorizedPageGenerator(cat)
+	cases = []
+	for page in gen:
+		case = get_case_details(page, clerks)
+		if len(case['status']) > 1:
+			statuses = case['status']
+			for status in statuses:
+				case_copy = case.copy()
+				case_copy['status'] = status
+				cases.append(case_copy)
+		else:
+			try:
+				case['status'] = case['status'][0]
+				cases.append(case)
+			except IndexError as e:
+				print(e)
+				print("The following case may have been archived while the case details were being grabbed:")
+				print(case)
+	return sort_cases(cases)
 
 
 def main():
 	clerks = get_clerk_list()
-	
-	cat = pywikibot.Category(site, 'Category:Open SPI cases')
-	gen = pagegenerators.CategorizedPageGenerator(cat)
-	cases = sort_cases([get_case_details(page, clerks) for page in gen])
-	
+	cases = get_all_cases(clerks)
 	page = pywikibot.Page(site, TABLE_LOCATION)
 	page.text = generate_case_table(cases)
-	page.save(summary='Updating SPI case list ({0} open cases)'.format(len(cases)), minor=False)
+	page.save(summary='Updating SPI case list ({0} active reports)'.format(len(cases)), minor=False, botflag=True)
 
 
 main()
