@@ -23,6 +23,15 @@ def get_clerk_list():
 
 
 def get_status_from_categories(categories):
+	"""
+	For concision, cases will usually appear in the SPI case table only once, except that
+	the following statuses will always appear: clerk, admin, checked, close, and one of 
+	(inprogress, endorsed, relist, CUrequest).
+	
+	For example, if an SPI case has five active reports, one with 'clerk', one with 'close'
+	one with 'endorsed', one with 'CUrequest', and one with 'open', it will appear three times
+	in the table as 'clerk', 'close', and 'endorsed'.
+	"""
 	print("Getting case status")
 	cat2status = {
 		'SPI cases currently being checked': 'inprogress',
@@ -180,7 +189,7 @@ def main():
 	cases = get_all_cases(clerks)
 	page = pywikibot.Page(site, TABLE_LOCATION)
 	page.text = generate_case_table(cases)
-	page.save(summary='Updating SPI case list ({0} active reports)'.format(len(cases)), minor=False)
+	page.save(summary='Updating SPI case list ({0} active reports)'.format(len(cases)), minor=False, bot=True)
 
 
 main()
