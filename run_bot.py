@@ -70,7 +70,7 @@ def get_status_from_categories(categories):
 			misc_only.append(status)
 	if curequest_only:
 		result.append(min(curequest_only, key=lambda x: curequest[x]))
-	if misc_only and len(result) == 0:
+	if misc_only and (len(result) == 0 or (len(result) == 1 and result[0] == 'close')):
 		result.append(min(misc_only, key=lambda x: misc[x]))
 	return result
 
