@@ -155,7 +155,7 @@ def sort_cases(cases):
 	inprogress > endorsed > relist > CUrequest > admin > clerk > checked > open > cudeclined >
 	declined > moreinfo > cuhold > hold > close
 	"""
-	rank = {'inprogress': 0, 'endorsed': 1, 'relisted': 2, 'CUrequest': 3, 'admin': 4,
+	rank = {'inprogress': 0, 'endorsed': 1, 'relist': 2, 'CUrequest': 3, 'admin': 4,
 	'clerk': 5, 'checked': 6, 'open': 7, 'cudeclined': 8, 'declined': 9, 'moreinfo': 10, 'cuhold': 11,
 	'hold': 12, 'close': 13}
 	return sorted(cases, key=lambda case: (rank[case['status']], case['file_time']))
