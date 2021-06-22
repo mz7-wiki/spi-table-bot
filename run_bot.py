@@ -3,7 +3,7 @@ from pywikibot import pagegenerators, textlib
 import re
 
 site = pywikibot.Site('en', 'wikipedia')
-TABLE_LOCATION = 'User:Mz7/SPI case list'  # location where this program should post the SPI case list
+TABLE_LOCATION = 'User:Mz7/SPI case list (test)'  # location where this program should post the SPI case list
 
 
 def get_clerk_list():
@@ -36,7 +36,7 @@ def get_status_from_categories(categories):
 	cat2status = {
 		'SPI cases currently being checked': 'inprogress',
 		'SPI cases awaiting a CheckUser': 'endorsed',
-		'SPI cases relisted for a checkuser': 'relist',
+		'SPI cases relisted for a CheckUser': 'relist',
 		'SPI cases requesting a checkuser': 'CUrequest',
 		'SPI cases needing an Administrator': 'admin',
 		'SPI cases needing a Clerk': 'clerk',
