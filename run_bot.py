@@ -57,7 +57,7 @@ def get_status_from_categories(categories):
 
 	priority = ['clerk', 'admin', 'checked', 'close']
 	result = []
-	curequest = {'inprogress': 0, 'endorsed': 1, 'relist': 2, 'CUrequest': 3}
+	curequest = {'inprogress': 0, 'relist': 1, 'endorsed': 2, 'CUrequest': 3}
 	curequest_only = []
 	misc = {'open': 0, 'cudeclined': 1, 'declined': 2, 'moreinfo': 3, 'cuhold': 4, 'hold': 5}
 	misc_only = []
