@@ -155,9 +155,9 @@ def sort_cases(cases):
 	inprogress > endorsed > relist > CUrequest > admin > clerk > checked > open > cudeclined >
 	declined > moreinfo > cuhold > hold > close
 	"""
-	rank = {'inprogress': 0, 'endorsed': 1, 'relist': 2, 'CUrequest': 3, 'admin': 4,
-	'clerk': 5, 'checked': 6, 'open': 7, 'cudeclined': 8, 'declined': 9, 'moreinfo': 10, 'cuhold': 11,
-	'hold': 12, 'close': 13}
+	rank = {'inprogress': 0, 'endorsed': 1, 'relist': 2, 'QUICK': 3, 'CUrequest': 4, 'admin': 5,
+	'clerk': 6, 'checked': 7, 'open': 8, 'cudeclined': 9, 'declined': 10, 'moreinfo': 11, 'cuhold': 12,
+	'hold': 13, 'close': 14}
 	return sorted(cases, key=lambda case: (rank[case['status']], case['file_time']))
 
 
@@ -181,7 +181,27 @@ def get_all_cases(clerks):
 				print(e)
 				print("The following case may have been archived while the case details were being grabbed:")
 				print(case)
+	cases += get_cu_needed_templates()
 	return sort_cases(cases)
+
+
+def get_cu_needed_templates():
+	print("Getting CU needed templates")
+	cat = pywikibot.Category(site, 'Category:Requests for checkuser')
+	gen = pagegenerators.CategorizedPageGenerator(cat)
+	cases = []
+	for page in gen:
+		cases.append({
+			'name': 'link={0}#checkuser_needed|CU needed: {0}'.format(page.title()),
+			'status': 'QUICK',
+			'file_time': page.editTime().strftime('%Y-%m-%d %H:%M'),
+			'last_user': '',
+			'last_user_time': '',
+			'last_clerk': '',
+			'last_clerk_time': ''
+		})
+	print(cases)
+	return cases
 
 
 def main():
