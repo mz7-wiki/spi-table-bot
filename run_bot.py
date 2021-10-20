@@ -3,7 +3,7 @@ from pywikibot import pagegenerators, textlib
 import re
 
 site = pywikibot.Site('en', 'wikipedia')
-TABLE_LOCATION = 'User:Mz7/SPI case list (test)'  # location where this program should post the SPI case list
+TABLE_LOCATION = 'User:Mz7/SPI case list'  # location where this program should post the SPI case list
 
 
 def get_clerk_list():
@@ -110,6 +110,7 @@ def get_case_details(case_page, clerks=[]):
 			if rev.user in clerks or 'checkuser' in rev_user.groups():
 				case['last_clerk'] = rev.user
 				case['last_clerk_time'] = rev.timestamp.strftime('%Y-%m-%d %H:%M')
+				break
 
 	# get file time
 	print("Getting file time")
