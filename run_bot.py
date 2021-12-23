@@ -106,7 +106,11 @@ def get_case_details(case_page, clerks=[]):
 		for rev in revisions:
 			if 'archiv' in rev.comment.lower() or 'moving' in rev.comment.lower() or 'moved' in rev.comment.lower():
 				break
-			rev_user = pywikibot.User(site, rev.user)
+			try:
+				rev_user = pywikibot.User(site, rev.user)
+			except ValueError:
+				print("ValueError was raised when trying to get revision user; the username may have been redacted or suppressed. Continuing to next revision.")
+				continue
 			if rev.user in clerks or 'checkuser' in rev_user.groups():
 				case['last_clerk'] = rev.user
 				case['last_clerk_time'] = rev.timestamp.strftime('%Y-%m-%d %H:%M')
