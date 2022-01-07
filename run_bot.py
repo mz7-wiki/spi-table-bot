@@ -104,7 +104,8 @@ def get_case_details(case_page, clerks=[]):
 		case['last_clerk'] = ''
 		case['last_clerk_time'] = ''
 		for rev in revisions:
-			if 'archiv' in rev.comment.lower() or 'moving' in rev.comment.lower() or 'moved' in rev.comment.lower():
+			lowercase_edit_summary = rev.comment.lower()
+			if 'archiv' in lowercase_edit_summary or 'moving' in lowercase_edit_summary or 'moved' in lowercase_edit_summary:
 				break
 			try:
 				rev_user = pywikibot.User(site, rev.user)
@@ -151,6 +152,9 @@ def generate_case_table(cases):
 	for case in cases:
 		result += format_table_row(case)
 	result += '|}'
+	if len(cases) == 0:
+		print("No SPI cases detected!")
+		result += '{{User:Mz7/SPI 0}}'
 	return result
 
 
