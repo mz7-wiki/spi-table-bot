@@ -3,7 +3,7 @@ from pywikibot import pagegenerators, textlib
 import re
 
 site = pywikibot.Site('en', 'wikipedia')
-TABLE_LOCATION = 'User:Mz7/SPI case list'  # location where this program should post the SPI case list
+TABLE_LOCATION = 'User:Mz7/SPI case list (test)'  # location where this program should post the SPI case list
 
 
 def get_clerk_list():
@@ -20,6 +20,12 @@ def get_clerk_list():
 			clerks.append(m.group(1))
 		i += 1
 	return clerks
+
+
+def get_checkuser_list():
+	r = pywikibot.data.api.Request(site=site, parameters={'action': 'query', 'list': 'allusers', 'augroup': 'checkuser', 'aulimit': 100})
+	data = r.submit()
+	return [user['name'] for user in data['query']['allusers']]
 
 
 def get_status_from_categories(categories):
@@ -94,10 +100,10 @@ def get_case_details(case_page, clerks=[]):
 	case['last_user'] = last_rev.user
 	case['last_user_time'] = last_rev.timestamp.strftime('%Y-%m-%d %H:%M')
 
-	# get last clerk and time
-	print("Getting last clerk")
-	last_user = pywikibot.User(site, last_rev.user)
-	if last_rev.user in clerks or 'checkuser' in last_user.groups():
+	# get last clerk/checkuser and time
+	# the clerks list passed as a parameter also includes checkusers
+	print("Getting last clerk or checkuser")
+	if last_rev.user in clerks:
 		case['last_clerk'] = last_rev.user
 		case['last_clerk_time'] = last_rev.timestamp.strftime('%Y-%m-%d %H:%M')
 	else:
@@ -107,12 +113,7 @@ def get_case_details(case_page, clerks=[]):
 			lowercase_edit_summary = rev.comment.lower()
 			if 'archiv' in lowercase_edit_summary or 'moving' in lowercase_edit_summary or 'moved' in lowercase_edit_summary:
 				break
-			try:
-				rev_user = pywikibot.User(site, rev.user)
-			except ValueError:
-				print("ValueError was raised when trying to get revision user; the username may have been redacted or suppressed. Continuing to next revision.")
-				continue
-			if rev.user in clerks or 'checkuser' in rev_user.groups():
+			if rev.user in clerks:
 				case['last_clerk'] = rev.user
 				case['last_clerk_time'] = rev.timestamp.strftime('%Y-%m-%d %H:%M')
 				break
@@ -215,6 +216,7 @@ def get_cu_needed_templates():
 
 def main():
 	clerks = get_clerk_list()
+	clerks += get_checkuser_list()
 	cases = get_all_cases(clerks)
 	page = pywikibot.Page(site, TABLE_LOCATION)
 	page.text = generate_case_table(cases)
