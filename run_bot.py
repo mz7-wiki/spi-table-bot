@@ -3,10 +3,11 @@ from pywikibot import pagegenerators, textlib
 import re
 
 site = pywikibot.Site('en', 'wikipedia')
-TABLE_LOCATION = 'User:Mz7/SPI case list (test)'  # location where this program should post the SPI case list
+TABLE_LOCATION = 'User:Mz7/SPI case list'  # location where this program should post the SPI case list
 
 
 def get_clerk_list():
+	print("Getting list of clerks")
 	clerks = []
 	page = pywikibot.Page(site, 'Wikipedia:Sockpuppet investigations/SPI/Clerks')
 	lines = page.text.split('\n')
@@ -19,13 +20,15 @@ def get_clerk_list():
 		if m:
 			clerks.append(m.group(1))
 		i += 1
+	print(clerks)
 	return clerks
 
 
 def get_checkuser_list():
-	r = pywikibot.data.api.Request(site=site, parameters={'action': 'query', 'list': 'allusers', 'augroup': 'checkuser', 'aulimit': 100})
-	data = r.submit()
-	return [user['name'] for user in data['query']['allusers']]
+	print("Getting list of checkusers")
+	checkusers = [user['name'] for user in site.allusers(group='checkuser')]
+	print(checkusers)
+	return checkusers
 
 
 def get_status_from_categories(categories):
