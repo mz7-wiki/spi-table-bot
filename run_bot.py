@@ -3,7 +3,7 @@ from pywikibot import pagegenerators, textlib
 import re
 
 site = pywikibot.Site('en', 'wikipedia')
-TABLE_LOCATION = 'User:Mz7/SPI case list'  # location where this program should post the SPI case list
+TABLE_LOCATION = 'Wikipedia:Sockpuppet investigations/SPI/Cases'  # location where this program should post the SPI case list
 
 
 def get_clerk_list():
