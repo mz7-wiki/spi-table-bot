@@ -204,6 +204,9 @@ def get_cu_needed_templates():
 	gen = pagegenerators.CategorizedPageGenerator(cat)
 	cases = []
 	for page in gen:
+		# ignoring User and Template namespaces because of the issue where some users transclude AIV etc. in those namespaces
+		if page.namespace() == 2 or page.namespace() == 10:
+			continue
 		cases.append({
 			'name': 'link={0}#checkuser_needed|CU needed: {0}'.format(page.title()),
 			'status': 'QUICK',
