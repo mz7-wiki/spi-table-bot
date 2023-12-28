@@ -114,7 +114,8 @@ def get_case_details(case_page, clerks=[]):
 		case['last_clerk_time'] = ''
 		for rev in revisions:
 			lowercase_edit_summary = rev.comment.lower()
-			if 'archiv' in lowercase_edit_summary or 'moving' in lowercase_edit_summary or 'moved' in lowercase_edit_summary:
+			if 'archiv' in lowercase_edit_summary or 'moving case' in lowercase_edit_summary:
+				# only look for clerks/CUs up to the last archive or case moved to another case
 				break
 			if rev.user in clerks:
 				case['last_clerk'] = rev.user
