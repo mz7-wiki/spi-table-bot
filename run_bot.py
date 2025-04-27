@@ -85,11 +85,19 @@ def get_status_from_categories(categories):
 
 
 def get_case_details(case_page, clerks=[]):
-	print("Now getting case details for {0}".format(case_page.title()))
+	case_title = case_page.title()
+	print(f"Now getting case details for {case_title}")
 	case = {}
 
 	# get case name
-	case['name'] = case_page.title().split("/")[1]
+	if case_title.startswith("Wikipedia:Sockpuppet investigations/"):
+		# everything after the first '/' in the string
+		case['name'] = case_title.split('/', 1)[1]
+	else:
+		# rare case in which a case name isn't in the SPI namespace
+		# the implementation for 'name' below is a bit of a hack: it adds a named parameter "|link="
+		# and then assumes 'name' is the first unnamed positional parameter |1= (see format_table_row below)
+		case['name'] = f"link={case_title}|{case_title}"
 
 	# get case status
 	case['status'] = get_status_from_categories(case_page.categories())
@@ -209,6 +217,8 @@ def get_cu_needed_templates():
 		if page.namespace() == 2 or page.namespace() == 10:
 			continue
 		cases.append({
+			# the implementation for 'name' below is a bit of a hack: it adds a named parameter "|link="
+			# and then assumes 'name' is the first unnamed positional parameter |1= (see format_table_row above)
 			'name': 'link={0}#checkuser_needed|CU needed: {0}'.format(page.title()),
 			'status': 'QUICK',
 			'file_time': page.editTime().strftime('%Y-%m-%d %H:%M'),
