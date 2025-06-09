@@ -58,17 +58,26 @@ def get_status_from_categories(categories):
 		'SPI cases on hold by clerk': 'hold',
 		'SPI cases awaiting archive': 'close',
 	}
+
+	# get category names as strings from the category objects
+	cat_titles = [cat.title(with_ns=False) for cat in categories]
+
+	# from the category names, get all of the possible case statuses for this case
 	statuses = []
-	for cat in categories:
-		title = cat.title(with_ns=False)
-		if title in cat2status:
+	for title in cat_titles:
+		if title == 'SPI cases requesting more information' and 'SPI cases for pre-CheckUser review' in cat_titles:
+			# special case where more info is requested for a CU request
+			statuses.append('cumoreinfo')
+		elif title in cat2status:
 			statuses.append(cat2status[title])
 
+	# from the possible case statuses, we'll now choose the ones the display on the
+	# final table and place them in the 'result' list according to the logic described above
 	priority = ['clerk', 'admin', 'checked', 'close']
 	result = []
 	curequest = {'inprogress': 0, 'relist': 1, 'endorsed': 2, 'CUrequest': 3}
 	curequest_only = []
-	misc = {'open': 0, 'cudeclined': 1, 'declined': 2, 'moreinfo': 3, 'cuhold': 4, 'hold': 5}
+	misc = {'open': 0, 'cudeclined': 1, 'declined': 2, 'cumoreinfo': 3, 'moreinfo': 4, 'cuhold': 5, 'hold': 6}
 	misc_only = []
 	for status in statuses:
 		if status in priority:
@@ -173,13 +182,26 @@ def generate_case_table(cases):
 
 def sort_cases(cases):
 	"""
-	Order of the SPI case table:
-	inprogress > endorsed > relist > CUrequest > admin > clerk > checked > open > cudeclined >
-	declined > moreinfo > cuhold > hold > close
+	Order of the SPI case table
 	"""
-	rank = {'inprogress': 0, 'endorsed': 1, 'relist': 2, 'QUICK': 3, 'CUrequest': 4, 'admin': 5,
-	'clerk': 6, 'checked': 7, 'open': 8, 'cudeclined': 9, 'declined': 10, 'moreinfo': 11, 'cuhold': 12,
-	'hold': 13, 'close': 14}
+	rank = {
+		'inprogress': 0,
+		'endorsed': 1,
+		'relist': 2,
+		'QUICK': 3,
+		'CUrequest': 4,
+		'admin': 5,
+		'clerk': 6,
+		'checked': 7,
+		'open': 8,
+		'cudeclined': 9,
+		'declined': 10,
+		'cumoreinfo': 11,
+		'moreinfo': 12,
+		'cuhold': 13,
+		'hold': 14,
+		'close': 15
+	}
 	return sorted(cases, key=lambda case: (rank[case['status']], case['file_time']))
 
 
