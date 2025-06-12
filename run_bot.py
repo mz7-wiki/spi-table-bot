@@ -7,19 +7,51 @@ TABLE_LOCATION = 'Wikipedia:Sockpuppet investigations/SPI/Cases'  # location whe
 
 
 def get_clerk_list():
+	"""
+	Retrieve the list of active clerks from WP:SPICL
+
+	The procedure for this is as follows (also documented in the hidden text
+	at WP:SPICL itself):
+
+	1. First we scan the page [[Wikipedia:Sockpuppet investigations/SPI/Clerks]]
+	   for the first section containing the string 'Active clerks'
+	2. In that section and its subsections, match each line looking for the first
+	   template that starts with 'user', and assume it takes the username as an
+	   anonymous first parameter.
+	"""
 	print("Getting list of clerks")
 	clerks = []
 	page = pywikibot.Page(site, 'Wikipedia:Sockpuppet investigations/SPI/Clerks')
 	lines = page.text.split('\n')
+
+	# Scan through the lines of Wikipedia:Sockpuppet investigations/SPI/Clerks
+	# until we see a line containing the string "Active clerks"
 	i = 0
 	while i < len(lines) and 'Active clerks' not in lines[i]:
 		i += 1
+
+	# Now on each subsequent line until we see one that has "inactive clerks" in it,
+	# look for templates that start with 'user' and grab the first anonymous parameter.
+	#
+	# Explanation of regex:
+	# - Looking for a line that starts with '{{user' or '{{User'
+	# - [^\|]* looks for any character that is not '|' (part of template name)
+	# - ([^}]+) is what we're looking for: any character that is not '}', which
+	#   would be the anonymous first parameter of the user template
 	pattern = re.compile(r'{{(?:u|U)ser[^\|]*\|([^}]+)}}')
 	while i < len(lines) and 'inactive clerks' not in lines[i].lower():
 		m = pattern.search(lines[i])
 		if m:
-			clerks.append(m.group(1))
+			username = m.group(1)
+
+			# Make the first character of the username case insenstive.
+			# This is for clerks who prefer to have the first letter of their
+			# username be lowercase in the list.
+			username = username[0].upper() + username[1:]
+
+			clerks.append(username)
 		i += 1
+
 	print(clerks)
 	return clerks
 
