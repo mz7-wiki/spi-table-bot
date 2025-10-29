@@ -82,6 +82,7 @@ def get_status_from_categories(categories):
 		'SPI cases needing an Administrator': 'admin',
 		'SPI cases needing a Clerk': 'clerk',
 		'SPI cases CU complete': 'checked',
+		'New SPI cases': 'new',
 		'SPI cases awaiting review': 'open',
 		'SPI cases declined for checkuser by CU': 'cudeclined',
 		'SPI cases declined for checkuser by clerk': 'declined',
@@ -109,7 +110,7 @@ def get_status_from_categories(categories):
 	result = []
 	curequest = {'inprogress': 0, 'relist': 1, 'endorsed': 2, 'CUrequest': 3}
 	curequest_only = []
-	misc = {'open': 0, 'cudeclined': 1, 'declined': 2, 'cumoreinfo': 3, 'moreinfo': 4, 'cuhold': 5, 'hold': 6}
+	misc = {'new': 0, 'open': 1, 'cudeclined': 2, 'declined': 3, 'cumoreinfo': 4, 'moreinfo': 5, 'cuhold': 6, 'hold': 7}
 	misc_only = []
 	for status in statuses:
 		if status in priority:
@@ -225,14 +226,15 @@ def sort_cases(cases):
 		'admin': 5,
 		'clerk': 6,
 		'checked': 7,
-		'open': 8,
-		'cudeclined': 9,
-		'declined': 10,
-		'cumoreinfo': 11,
-		'moreinfo': 12,
-		'cuhold': 13,
-		'hold': 14,
-		'close': 15
+		'new': 8,
+		'open': 9,
+		'cudeclined': 10,
+		'declined': 11,
+		'cumoreinfo': 12,
+		'moreinfo': 13,
+		'cuhold': 14,
+		'hold': 15,
+		'close': 16
 	}
 	return sorted(cases, key=lambda case: (rank[case['status']], case['file_time']))
 
