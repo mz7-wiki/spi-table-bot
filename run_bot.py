@@ -5,6 +5,7 @@ import re
 site = pywikibot.Site('en', 'wikipedia')
 TABLE_LOCATION = 'Wikipedia:Sockpuppet investigations/SPI/Cases'  # location where this program should post the SPI case list
 
+LOWERCASE_USERNAMES = {'Asilvering'}
 
 def get_clerk_list():
 	"""
@@ -171,6 +172,13 @@ def get_case_details(case_page, clerks=[]):
 				case['last_clerk'] = rev.user
 				case['last_clerk_time'] = rev.timestamp.strftime('%Y-%m-%d %H:%M')
 				break
+
+	# a little hardcoded easter egg because asilvering likes their username lowercase
+	# let me know if this breaks anything and I can remove it lol
+	if case['last_user'] in LOWERCASE_USERNAMES:
+		case['last_user'] = case['last_user'].lower()
+	if case['last_clerk'] in LOWERCASE_USERNAMES:
+		case['last_clerk'] = case['last_clerk'].lower()
 
 	# get file time
 	print("Getting file time")
