@@ -21,7 +21,7 @@ def get_clerk_list():
 	   anonymous first parameter.
 	"""
 	print("Getting list of clerks")
-	clerks = []
+	clerks = set()
 	page = pywikibot.Page(site, 'Wikipedia:Sockpuppet investigations/SPI/Clerks')
 	lines = page.text.split('\n')
 
@@ -50,7 +50,7 @@ def get_clerk_list():
 			# username be lowercase in the list.
 			username = username[0].upper() + username[1:]
 
-			clerks.append(username)
+			clerks.add(username)
 		i += 1
 
 	print(clerks)
@@ -59,7 +59,7 @@ def get_clerk_list():
 
 def get_checkuser_list():
 	print("Getting list of checkusers")
-	checkusers = [user['name'] for user in site.allusers(group='checkuser')]
+	checkusers = {user['name'] for user in site.allusers(group='checkuser')}
 	print(checkusers)
 	return checkusers
 
@@ -127,7 +127,7 @@ def get_status_from_categories(categories):
 	return result
 
 
-def get_case_details(case_page, clerks=[]):
+def get_case_details(case_page, clerks=set()):
 	case_title = case_page.title()
 	print(f"Now getting case details for {case_title}")
 	case = {}
@@ -296,8 +296,7 @@ def get_cu_needed_templates():
 
 
 def main():
-	clerks = get_clerk_list()
-	clerks += get_checkuser_list()
+	clerks = get_clerk_list() | get_checkuser_list()
 	cases = get_all_cases(clerks)
 	page = pywikibot.Page(site, TABLE_LOCATION)
 	page.text = generate_case_table(cases)
