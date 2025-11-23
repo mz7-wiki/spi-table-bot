@@ -271,6 +271,7 @@ def get_all_cases(clerks):
 	cat = pywikibot.Category(site, 'Category:Open SPI cases')
 	gen = pagegenerators.CategorizedPageGenerator(cat)
 	cases = []
+
 	for page in gen:
 		case = get_case_details(page, clerks)
 		if len(case['status']) > 1:
@@ -279,12 +280,12 @@ def get_all_cases(clerks):
 				case_copy = case.copy()
 				case_copy['status'] = status
 				cases.append(case_copy)
+		elif len(case['status']) == 1:
+			case['status'] = case['status'][0]
+			cases.append(case)
 		else:
-			try:
-				case['status'] = case['status'][0]
-				cases.append(case)
-			except IndexError:
-				logger.exception(f"The following case may have been archived while the case details were being grabbed: {case}")
+			logger.warning(f"The following case may have been archived while the case details were being grabbed: {case}")
+
 	cases += get_cu_needed_templates()
 	return sort_cases(cases)
 
