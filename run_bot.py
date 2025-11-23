@@ -1,6 +1,26 @@
 import pywikibot
 from pywikibot import pagegenerators, textlib
 import re
+import logging
+from logging.handlers import RotatingFileHandler
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+formatter = logging.Formatter(
+    '%(asctime)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+
+# Rotate logs whenever we reach 100 MB
+# It will keep 3 log files of 100 MB long - the oldest file will be deleted
+file_handler = RotatingFileHandler(
+    '/data/project/spi-table-bot/logs/spi-table-bot.log',
+    maxBytes=100 * 1024 * 1024,  # 100 MB
+    backupCount=3
+)
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
 
 site = pywikibot.Site('en', 'wikipedia')
 TABLE_LOCATION = 'Wikipedia:Sockpuppet investigations/SPI/Cases'  # location where this program should post the SPI case list
@@ -20,7 +40,7 @@ def get_clerk_list():
 	   template that starts with 'user', and assume it takes the username as an
 	   anonymous first parameter.
 	"""
-	print("Getting list of clerks")
+	logger.info("Getting list of clerks")
 	clerks = set()
 	page = pywikibot.Page(site, 'Wikipedia:Sockpuppet investigations/SPI/Clerks')
 	lines = page.text.split('\n')
@@ -53,14 +73,14 @@ def get_clerk_list():
 			clerks.add(username)
 		i += 1
 
-	print(clerks)
+	logger.info(clerks)
 	return clerks
 
 
 def get_checkuser_list():
-	print("Getting list of checkusers")
+	logger.info("Getting list of checkusers")
 	checkusers = {user['name'] for user in site.allusers(group='checkuser')}
-	print(checkusers)
+	logger.info(checkusers)
 	return checkusers
 
 
@@ -74,7 +94,7 @@ def get_status_from_categories(categories):
 	one with 'endorsed', one with 'CUrequest', and one with 'open', it will appear three times
 	in the table as 'clerk', 'close', and 'endorsed'.
 	"""
-	print("Getting case status")
+	logger.debug("Getting case status")
 	cat2status = {
 		'SPI cases currently being checked': 'inprogress',
 		'SPI cases awaiting a CheckUser': 'endorsed',
@@ -129,7 +149,7 @@ def get_status_from_categories(categories):
 
 def get_case_details(case_page, clerks=set()):
 	case_title = case_page.title()
-	print(f"Now getting case details for {case_title}")
+	logger.info(f"Now getting case details for {case_title}")
 	case = {}
 
 	# get case name
@@ -149,14 +169,14 @@ def get_case_details(case_page, clerks=set()):
 	revisions = case_page.revisions()
 
 	# get last user and time
-	print("Getting last user")
+	logger.debug("Getting last user")
 	last_rev = next(revisions)
 	case['last_user'] = last_rev.user
 	case['last_user_time'] = last_rev.timestamp.strftime('%Y-%m-%d %H:%M')
 
 	# get last clerk/checkuser and time
 	# the clerks list passed as a parameter also includes checkusers
-	print("Getting last clerk or checkuser")
+	logger.debug("Getting last clerk or checkuser")
 	if last_rev.user in clerks:
 		case['last_clerk'] = last_rev.user
 		case['last_clerk_time'] = last_rev.timestamp.strftime('%Y-%m-%d %H:%M')
@@ -181,7 +201,7 @@ def get_case_details(case_page, clerks=set()):
 		case['last_clerk'] = case['last_clerk'].lower()
 
 	# get file time
-	print("Getting file time")
+	logger.debug("Getting file time")
 	ts = textlib.TimeStripper(site)
 	case_lines = case_page.text.split('\n')
 	for line in case_lines:
@@ -193,7 +213,7 @@ def get_case_details(case_page, clerks=set()):
 	else:
 		case['file_time'] = 'Unknown'
 
-	print(case)
+	logger.info(case)
 
 	return case
 
@@ -216,7 +236,7 @@ def generate_case_table(cases):
 		result += format_table_row(case)
 	result += '|}'
 	if len(cases) == 0:
-		print("No SPI cases detected!")
+		logger.info("No SPI cases detected!")
 		result += '{{User:Mz7/SPI 0}}'
 	return result
 
@@ -263,16 +283,14 @@ def get_all_cases(clerks):
 			try:
 				case['status'] = case['status'][0]
 				cases.append(case)
-			except IndexError as e:
-				print(e)
-				print("The following case may have been archived while the case details were being grabbed:")
-				print(case)
+			except IndexError:
+				logger.exception(f"The following case may have been archived while the case details were being grabbed: {case}")
 	cases += get_cu_needed_templates()
 	return sort_cases(cases)
 
 
 def get_cu_needed_templates():
-	print("Getting CU needed templates")
+	logger.info("Getting CU needed templates")
 	cat = pywikibot.Category(site, 'Category:Requests for checkuser')
 	gen = pagegenerators.CategorizedPageGenerator(cat)
 	cases = []
@@ -291,7 +309,10 @@ def get_cu_needed_templates():
 			'last_clerk': '',
 			'last_clerk_time': ''
 		})
-	print(cases)
+	if cases:
+		logger.info(cases)
+	else:
+		logger.info("No CU needed templates found")
 	return cases
 
 
@@ -300,7 +321,9 @@ def main():
 	cases = get_all_cases(clerks)
 	page = pywikibot.Page(site, TABLE_LOCATION)
 	page.text = generate_case_table(cases)
-	page.save(summary='Updating SPI case list ({0} active reports)'.format(len(cases)), minor=False, botflag=True)
+	page.save(summary=f'Updating SPI case list ({len(cases)} active reports)', minor=False, botflag=True)
+	logger.info(f'Successfully updated SPI case list ({len(cases)} active reports)')
 
 
-main()
+if __name__ == "__main__":
+    main()
