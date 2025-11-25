@@ -127,11 +127,11 @@ def get_status_from_categories(categories):
 
 	# from the possible case statuses, we'll now choose the ones the display on the
 	# final table and place them in the 'result' list according to the logic described above
-	priority = ['clerk', 'admin', 'checked', 'close']
+	priority = ['new', 'clerk', 'admin', 'checked', 'close']
 	result = []
 	curequest = {'inprogress': 0, 'relist': 1, 'endorsed': 2, 'CUrequest': 3}
 	curequest_only = []
-	misc = {'new': 0, 'open': 1, 'cudeclined': 2, 'declined': 3, 'cumoreinfo': 4, 'moreinfo': 5, 'cuhold': 6, 'hold': 7}
+	misc = {'open': 0, 'cudeclined': 1, 'declined': 2, 'cumoreinfo': 3, 'moreinfo': 4, 'cuhold': 5, 'hold': 6}
 	misc_only = []
 	for status in statuses:
 		if status in priority:
