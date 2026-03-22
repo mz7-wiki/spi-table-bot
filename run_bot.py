@@ -287,7 +287,52 @@ def get_all_cases(clerks):
 			logger.warning(f"The following case may have been archived while the case details were being grabbed: {case}")
 
 	cases += get_cu_needed_templates()
+	cases += get_quick_cu_requests()
 	return sort_cases(cases)
+
+
+def get_quick_cu_requests():
+	logger.info("Getting Quick CheckUser requests from Wikipedia:Sockpuppet investigations")
+	page = pywikibot.Page(site, 'Wikipedia:Sockpuppet investigations')
+	lines = page.text.split('\n')
+	edit_time = page.editTime().strftime('%Y-%m-%d %H:%M')
+
+	spi_quick_pattern = re.compile(r'\{\{SPIquick\|?(.*?)\}\}')
+	closed_statuses = {'done', 'close', 'closed', 'archive'}
+
+	cases = []
+	in_quick_section = False
+	pending_case_name = None
+
+	for line in lines:
+		if line.startswith('===='):
+			if in_quick_section:
+				pending_case_name = line.strip('= ').strip()
+		elif line.startswith('==='):
+			section_name = line.strip('= ').strip()
+			in_quick_section = 'Quick CheckUser requests' in section_name
+			pending_case_name = None
+		elif in_quick_section and pending_case_name:
+			m = spi_quick_pattern.search(line)
+			if m:
+				param = m.group(1).strip().lower()
+				if param not in closed_statuses:
+					cases.append({
+						'name': 'link=Wikipedia:Sockpuppet investigations#{0}|Quick check: {0}'.format(pending_case_name),
+						'status': 'QUICK',
+						'file_time': edit_time,
+						'last_user': '',
+						'last_user_time': '',
+						'last_clerk': '',
+						'last_clerk_time': ''
+					})
+				pending_case_name = None
+
+	if cases:
+		logger.info(cases)
+	else:
+		logger.info("No Quick CheckUser requests found")
+	return cases
 
 
 def get_cu_needed_templates():
