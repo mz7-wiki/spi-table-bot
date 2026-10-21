@@ -280,7 +280,7 @@ class TestGetQuickCuRequests(unittest.TestCase):
 
     def setUp(self):
         self.mock_page = MagicMock()
-        self.mock_page.editTime.return_value = datetime(2026, 3, 22, 10, 0)
+        self.mock_page.latest_revision.timestamp = datetime(2026, 3, 22, 10, 0)
         run_bot.pywikibot.Page.return_value = self.mock_page
 
     def test_open_request_added(self):

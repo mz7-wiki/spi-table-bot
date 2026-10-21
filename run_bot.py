@@ -299,7 +299,7 @@ def get_quick_cu_requests():
 	logger.info("Getting Quick CheckUser requests from Wikipedia:Sockpuppet investigations")
 	page = pywikibot.Page(site, 'Wikipedia:Sockpuppet investigations')
 	lines = page.text.split('\n')
-	edit_time = page.editTime().strftime('%Y-%m-%d %H:%M')
+	edit_time = page.latest_revision.timestamp.strftime('%Y-%m-%d %H:%M')
 
 	spi_quick_pattern = re.compile(r'\{\{SPIquick\|?(.*?)\}\}')
 	closed_statuses = {'done', 'close', 'closed', 'archive'}
@@ -353,7 +353,7 @@ def get_cu_needed_templates():
 			# and then assumes 'name' is the first unnamed positional parameter |1= (see format_table_row above)
 			'name': 'link={0}#checkuser_needed|CU needed: {0}'.format(page.title()),
 			'status': 'QUICK',
-			'file_time': page.editTime().strftime('%Y-%m-%d %H:%M'),
+			'file_time': page.latest_revision.timestamp.strftime('%Y-%m-%d %H:%M'),
 			'last_user': '',
 			'last_user_time': '',
 			'last_clerk': '',
