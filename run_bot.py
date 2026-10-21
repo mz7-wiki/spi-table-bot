@@ -2,6 +2,7 @@ import pywikibot
 from pywikibot import pagegenerators, textlib
 import re
 import logging
+import os
 from logging.handlers import RotatingFileHandler
 
 logger = logging.getLogger(__name__)
@@ -14,8 +15,11 @@ formatter = logging.Formatter(
 
 # Rotate logs whenever we reach 100 MB
 # It will keep 3 log files of 100 MB long - the oldest file will be deleted
+# Logs go in a logs/ directory next to this script, regardless of where it is run from
+LOG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs')
+os.makedirs(LOG_DIR, exist_ok=True)
 file_handler = RotatingFileHandler(
-    '/data/project/spi-table-bot/logs/spi-table-bot.log',
+    os.path.join(LOG_DIR, 'spi-table-bot.log'),
     maxBytes=100 * 1024 * 1024,  # 100 MB
     backupCount=3
 )
