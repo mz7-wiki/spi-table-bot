@@ -29,7 +29,7 @@ logger.addHandler(file_handler)
 site = pywikibot.Site('en', 'wikipedia')
 TABLE_LOCATION = 'Wikipedia:Sockpuppet investigations/SPI/Cases'  # location where this program should post the SPI case list
 
-LOWERCASE_USERNAMES = {'Asilvering'}
+LOWERCASE_USERNAMES = {'Asilvering', 'Lp0 on fire'}
 
 def get_clerk_list():
 	"""
